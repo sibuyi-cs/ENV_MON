@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Weather Monitor</title>
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <span class="logo-icon">🌤️</span>
+                    <h1>Weather Monitor</h1>
+                </div>
+                <p class="auth-subtitle">Sign in to your account</p>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                    >
+                    <span class="form-error" id="emailError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="password-toggle" id="passwordToggle">
+                            <span class="toggle-icon">👁️</span>
+                        </button>
+                    </div>
+                    <span class="form-error" id="passwordError"></span>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="auth-button" id="loginButton">
+                    <span class="button-text">Sign In</span>
+                    <span class="button-loader" id="loginLoader"></span>
+                </button>
+
+                <div class="form-error main-error" id="mainError"></div>
+                <div class="form-success" id="successMessage"></div>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="register.html" class="auth-link">Sign up</a></p>
+            </div>
+        </div>
+
+        <div class="auth-background">
+            <div class="weather-animation">
+                <div class="cloud cloud-1"></div>
+                <div class="cloud cloud-2"></div>
+                <div class="cloud cloud-3"></div>
+                <div class="rain-drop rain-1"></div>
+                <div class="rain-drop rain-2"></div>
+                <div class="rain-drop rain-3"></div>
+                <div class="rain-drop rain-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+</body>
+</html>

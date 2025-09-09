@@ -1,0 +1,309 @@
+ const labels = [];
+    const tempData = [];
+    const humidityData = [];
+    const windData = [];
+
+    // Create chart function
+    function createChart(ctxId, label, color) {
+        return new Chart(document.getElementById(ctxId).getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: [],
+                    backgroundColor: color.replace('1)', '0.2)'),
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: false } }
+            }
+        });
+    }
+
+    // Create individual charts
+    const tempChart = createChart('tempHistoryChart', 'Temperature (°C)', 'rgba(255,99,132,1)');
+    const humidityChart = createChart('humidityHistoryChart', 'Humidity (%)', 'rgba(54,162,235,1)');
+    const windChart = createChart('windHistoryChart', 'Wind Speed (km/h)', 'rgba(75,192,192,1)');
+
+    // Create combined chart
+    const combinedChart = new Chart(document.getElementById('combinedChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Temperature (°C)',
+                    data: tempData,
+                    backgroundColor: 'rgba(255,99,132,0.2)',
+                    borderColor: 'rgba(255,99,132,1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Humidity (%)',
+                    data: humidityData,
+                    backgroundColor: 'rgba(54,162,235,0.2)',
+                    borderColor: 'rgba(54,162,235,1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Wind Speed (km/h)',
+                    data: windData,
+                    backgroundColor: 'rgba(75,192,192,0.2)',
+                    borderColor: 'rgba(75,192,192,1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false } // using custom legend HTML
+            },
+            scales: { y: { beginAtZero: false } }
+        }
+    });
+
+    // Random data generators
+    const getRandomTemp = () => (Math.random() * 40 - 5).toFixed(1);
+    const getRandomHumidity = () => (Math.random() * 100).toFixed(1);
+    const getRandomWind = () => (Math.random() * 50).toFixed(1);
+
+    // Stats updater
+    function updateStats(data, minId, maxId, avgId, unit) {
+        if (data.length === 0) return;
+        const min = Math.min(...data).toFixed(1);
+        const max = Math.max(...data).toFixed(1);
+        const avg = (data.reduce((a, b) => a + Number(b), 0) / data.length).toFixed(1);
+        document.getElementById(minId).textContent = `${min} ${unit}`;
+        document.getElementById(maxId).textContent = `${max} ${unit}`;
+        document.getElementById(avgId).textContent = `${avg} ${unit}`;
+    }
+
+    // Update charts and stats
+    function updateCharts() {
+        const now = new Date().toLocaleTimeString();
+
+        labels.push(now);
+        tempData.push(getRandomTemp());
+        humidityData.push(getRandomHumidity());
+        windData.push(getRandomWind());
+
+        if (labels.length > 20) {
+            labels.shift();
+            tempData.shift();
+            humidityData.shift();
+            windData.shift();
+        }
+
+        tempChart.data.datasets[0].data = tempData;
+        humidityChart.data.datasets[0].data = humidityData;
+        windChart.data.datasets[0].data = windData;
+
+        tempChart.update();
+        humidityChart.update();
+        windChart.update();
+        combinedChart.update();
+
+        updateStats(tempData, 'tempMin', 'tempMax', 'tempAvg', '°C');
+        updateStats(humidityData, 'humidityMin', 'humidityMax', 'humidityAvg', '%');
+        updateStats(windData, 'windMin', 'windMax', 'windAvg', 'km/h');
+    }
+
+
+
+ // Small chart inside metric card
+    const tempCardChart = new Chart(document.getElementById('tempChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                borderColor: 'rgba(255,99,132,1)',
+                backgroundColor: 'rgba(255,99,132,0.2)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            }
+        }
+    });
+
+    function updateTemperatureCard(newTemp) {
+        // Update number
+        document.getElementById('temperature').textContent = newTemp;
+
+        // Update status based on thresholds
+        let status = "Normal";
+        if (newTemp < 0) status = "Freezing ❄️";
+        else if (newTemp > 30) status = "Hot 🔥";
+        document.getElementById('tempStatus').textContent = status;
+
+        // Update mini chart
+        const now = new Date().toLocaleTimeString();
+        tempCardChart.data.labels.push(now);
+        tempCardChart.data.datasets[0].data.push(newTemp);
+
+        // Keep chart small
+        if (tempCardChart.data.labels.length > 10) {
+            tempCardChart.data.labels.shift();
+            tempCardChart.data.datasets[0].data.shift();
+        }
+
+        tempCardChart.update();
+    }
+
+    // Hook into your updateCharts function
+    function updateCharts() {
+        const now = new Date().toLocaleTimeString();
+
+        const temp = parseFloat(getRandomTemp());
+        const humidity = parseFloat(getRandomHumidity());
+        const wind = parseFloat(getRandomWind());
+
+        labels.push(now);
+        tempData.push(temp);
+        humidityData.push(humidity);
+        windData.push(wind);
+
+        if (labels.length > 20) {
+            labels.shift();
+            tempData.shift();
+            humidityData.shift();
+            windData.shift();
+        }
+
+        tempChart.data.datasets[0].data = tempData;
+        humidityChart.data.datasets[0].data = humidityData;
+        windChart.data.datasets[0].data = windData;
+
+        tempChart.update();
+        humidityChart.update();
+        windChart.update();
+        combinedChart.update();
+
+        updateStats(tempData, 'tempMin', 'tempMax', 'tempAvg', '°C');
+        updateStats(humidityData, 'humidityMin', 'humidityMax', 'humidityAvg', '%');
+        updateStats(windData, 'windMin', 'windMax', 'windAvg', 'km/h');
+
+        // 🔹 Update the temperature metric card
+        updateTemperatureCard(temp);
+    }
+
+     // Mini chart for humidity
+    const humidityCardChart = new Chart(document.getElementById('humidityChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                borderColor: 'rgba(54,162,235,1)',
+                backgroundColor: 'rgba(54,162,235,0.2)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            }
+        }
+    });
+
+    function updateHumidityCard(newHumidity) {
+        // Update number
+        document.getElementById('humidity').textContent = newHumidity;
+
+        // Update bar fill
+        document.getElementById('humidityFill').style.width = `${newHumidity}%`;
+
+        // Update status based on thresholds
+        let status = "Normal";
+        if (newHumidity < 30) status = "Dry 🌵";
+        else if (newHumidity > 70) status = "Humid 💦";
+        document.getElementById('humidityStatus').textContent = status;
+
+        // Update mini chart
+        const now = new Date().toLocaleTimeString();
+        humidityCardChart.data.labels.push(now);
+        humidityCardChart.data.datasets[0].data.push(newHumidity);
+
+        if (humidityCardChart.data.labels.length > 10) {
+            humidityCardChart.data.labels.shift();
+            humidityCardChart.data.datasets[0].data.shift();
+        }
+
+        humidityCardChart.update();
+    }
+
+    // Modify your updateCharts function so it calls this
+    function updateCharts() {
+        const now = new Date().toLocaleTimeString();
+
+        const temp = parseFloat(getRandomTemp());
+        const humidity = parseFloat(getRandomHumidity());
+        const wind = parseFloat(getRandomWind());
+
+        labels.push(now);
+        tempData.push(temp);
+        humidityData.push(humidity);
+        windData.push(wind);
+
+        if (labels.length > 20) {
+            labels.shift();
+            tempData.shift();
+            humidityData.shift();
+            windData.shift();
+        }
+
+        tempChart.data.datasets[0].data = tempData;
+        humidityChart.data.datasets[0].data = humidityData;
+        windChart.data.datasets[0].data = windData;
+
+        tempChart.update();
+        humidityChart.update();
+        windChart.update();
+        combinedChart.update();
+
+        updateStats(tempData, 'tempMin', 'tempMax', 'tempAvg', '°C');
+        updateStats(humidityData, 'humidityMin', 'humidityMax', 'humidityAvg', '%');
+        updateStats(windData, 'windMin', 'windMax', 'windAvg', 'km/h');
+
+        // 🔹 Update metric cards
+        updateTemperatureCard(temp);
+        updateHumidityCard(humidity);
+    }
+
+
+
+    
+
+
+    
+    setInterval(updateCharts, 2000);
+
+    setInterval(updateCharts, 2000);
+
+
+    // Update every 2 seconds
+    setInterval(updateCharts, 2000);

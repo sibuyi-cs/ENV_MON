@@ -1,0 +1,770 @@
+// class WeatherMonitor {
+//     constructor() {
+//         this.temperatureUnit = 'celsius';
+//         this.autoRefresh = true;
+//         this.refreshInterval = 5000; // 5 seconds
+//         this.intervalId = null;
+        
+//         // Data storage for mini charts
+//         this.temperatureData = [];
+//         this.humidityData = [];
+//         this.windSpeedData = [];
+//         this.maxDataPoints = 20;
+        
+//         // Historical data storage
+//         this.historicalData = {
+//             timestamps: [],
+//             temperature: [],
+//             humidity: [],
+//             windSpeed: [],
+//             windDirection: []
+//         };
+//         this.maxHistoricalPoints = 288; // 24 hours of 5-minute intervals
+//         this.timeRange = '24h';
+        
+//         // Current values
+//         this.currentTemp = 0;
+//         this.currentHumidity = 0;
+//         this.currentWindSpeed = 0;
+//         this.currentWindDirection = 0;
+        
+//         this.init();
+//     }
+    
+//     init() {
+//         this.updateData();
+//         this.setupCharts();
+//         this.startAutoRefresh();
+//         this.updateLastUpdated();
+        
+//         // Initial data population
+//         for (let i = 0; i < this.maxDataPoints; i++) {
+//             this.temperatureData.push(this.generateTemperature());
+//             this.humidityData.push(this.generateHumidity());
+//             this.windSpeedData.push(this.generateWindSpeed());
+//         }
+        
+//         // Generate initial historical data
+//         this.generateInitialHistoricalData();
+        
+//         this.drawCharts();
+//         this.drawHistoricalCharts();
+//         this.updateStatistics();
+//     }
+    
+//     generateInitialHistoricalData() {
+//         const now = new Date();
+//         for (let i = this.maxHistoricalPoints - 1; i >= 0; i--) {
+//             const timestamp = new Date(now.getTime() - i * 5 * 60 * 1000); // 5-minute intervals
+//             this.historicalData.timestamps.push(timestamp);
+//             this.historicalData.temperature.push(this.generateTemperature());
+//             this.historicalData.humidity.push(this.generateHumidity());
+//             this.historicalData.windSpeed.push(this.generateWindSpeed());
+//             this.historicalData.windDirection.push(this.generateWindDirection());
+//         }
+//     }
+    
+//     generateTemperature() {
+//         // Simulate temperature between -10°C to 40°C
+//         return Math.round((Math.random() * 50 - 10) * 10) / 10;
+//     }
+    
+//     generateHumidity() {
+//         // Simulate humidity between 20% to 95%
+//         return Math.round(Math.random() * 75 + 20);
+//     }
+    
+//     generateWindSpeed() {
+//         // Simulate wind speed between 0 to 50 km/h
+//         return Math.round(Math.random() * 50 * 10) / 10;
+//     }
+    
+//     generateWindDirection() {
+//         // Random direction in degrees (0-360)
+//         return Math.floor(Math.random() * 360);
+//     }
+    
+//     updateData() {
+//         this.currentTemp = this.generateTemperature();
+//         this.currentHumidity = this.generateHumidity();
+//         this.currentWindSpeed = this.generateWindSpeed();
+//         this.currentWindDirection = this.generateWindDirection();
+        
+//         // Add to data arrays
+//         this.temperatureData.push(this.currentTemp);
+//         this.humidityData.push(this.currentHumidity);
+//         this.windSpeedData.push(this.currentWindSpeed);
+        
+//         // Keep only latest data points
+//         if (this.temperatureData.length > this.maxDataPoints) {
+//             this.temperatureData.shift();
+//             this.humidityData.shift();
+//             this.windSpeedData.shift();
+//         }
+        
+//         // Add to historical data
+//         const now = new Date();
+//         this.historicalData.timestamps.push(now);
+//         this.historicalData.temperature.push(this.currentTemp);
+//         this.historicalData.humidity.push(this.currentHumidity);
+//         this.historicalData.windSpeed.push(this.currentWindSpeed);
+//         this.historicalData.windDirection.push(this.currentWindDirection);
+        
+//         // Keep only latest historical points
+//         if (this.historicalData.timestamps.length > this.maxHistoricalPoints) {
+//             this.historicalData.timestamps.shift();
+//             this.historicalData.temperature.shift();
+//             this.historicalData.humidity.shift();
+//             this.historicalData.windSpeed.shift();
+//             this.historicalData.windDirection.shift();
+//         }
+        
+//         this.updateDisplay();
+//         this.drawCharts();
+//         this.drawHistoricalCharts();
+//         this.updateStatistics();
+//         this.updateAlerts();
+//         this.updateLastUpdated();
+//     }
+    
+//     updateDisplay() {
+//         // Temperature
+//         const displayTemp = this.temperatureUnit === 'fahrenheit' 
+//             ? this.celsiusToFahrenheit(this.currentTemp) 
+//             : this.currentTemp;
+        
+//         document.getElementById('temperature').textContent = displayTemp.toFixed(1);
+//         document.getElementById('tempUnit').textContent = this.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+        
+//         // Temperature status
+//         const tempStatus = this.getTemperatureStatus(this.currentTemp);
+//         const tempStatusEl = document.getElementById('tempStatus');
+//         tempStatusEl.textContent = tempStatus.text;
+//         tempStatusEl.className = `metric-status ${tempStatus.class}`;
+        
+//         // Humidity
+//         document.getElementById('humidity').textContent = this.currentHumidity;
+//         document.getElementById('humidityFill').style.width = `${this.currentHumidity}%`;
+        
+//         // Humidity status
+//         const humidityStatus = this.getHumidityStatus(this.currentHumidity);
+//         const humidityStatusEl = document.getElementById('humidityStatus');
+//         humidityStatusEl.textContent = humidityStatus.text;
+//         humidityStatusEl.className = `metric-status ${humidityStatus.class}`;
+        
+//         // Wind Speed
+//         document.getElementById('windSpeed').textContent = this.currentWindSpeed.toFixed(1);
+        
+//         // Wind status
+//         const windStatus = this.getWindStatus(this.currentWindSpeed);
+//         const windStatusEl = document.getElementById('windStatus');
+//         windStatusEl.textContent = windStatus.text;
+//         windStatusEl.className = `metric-status ${windStatus.class}`;
+        
+//         // Wind direction
+//         const windDirectionEl = document.getElementById('windDirection');
+//         windDirectionEl.style.transform = `translate(-50%, -100%) rotate(${this.currentWindDirection}deg)`;
+//     }
+    
+//     celsiusToFahrenheit(celsius) {
+//         return (celsius * 9/5) + 32;
+//     }
+    
+//     getTemperatureStatus(temp) {
+//         if (temp < 0 || temp > 35) {
+//             return { text: 'Extreme', class: 'danger' };
+//         } else if (temp < 5 || temp > 30) {
+//             return { text: 'Warning', class: 'warning' };
+//         }
+//         return { text: 'Normal', class: 'normal' };
+//     }
+    
+//     getHumidityStatus(humidity) {
+//         if (humidity < 30 || humidity > 80) {
+//             return { text: 'Uncomfortable', class: 'warning' };
+//         } else if (humidity < 20 || humidity > 90) {
+//             return { text: 'Extreme', class: 'danger' };
+//         }
+//         return { text: 'Comfortable', class: 'normal' };
+//     }
+    
+//     getWindStatus(windSpeed) {
+//         if (windSpeed < 5) {
+//             return { text: 'Calm', class: 'normal' };
+//         } else if (windSpeed < 20) {
+//             return { text: 'Light Breeze', class: 'normal' };
+//         } else if (windSpeed < 35) {
+//             return { text: 'Strong Wind', class: 'warning' };
+//         }
+//         return { text: 'Gale Force', class: 'danger' };
+//     }
+    
+//     setupCharts() {
+//         this.tempCanvas = document.getElementById('tempChart');
+//         this.humidityCanvas = document.getElementById('humidityChart');
+//         this.windCanvas = document.getElementById('windChart');
+        
+//         this.tempCtx = this.tempCanvas.getContext('2d');
+//         this.humidityCtx = this.humidityCanvas.getContext('2d');
+//         this.windCtx = this.windCanvas.getContext('2d');
+        
+//         // Historical chart canvases
+//         this.tempHistoryCanvas = document.getElementById('tempHistoryChart');
+//         this.humidityHistoryCanvas = document.getElementById('humidityHistoryChart');
+//         this.windHistoryCanvas = document.getElementById('windHistoryChart');
+//         this.combinedCanvas = document.getElementById('combinedChart');
+        
+//         this.tempHistoryCtx = this.tempHistoryCanvas.getContext('2d');
+//         this.humidityHistoryCtx = this.humidityHistoryCanvas.getContext('2d');
+//         this.windHistoryCtx = this.windHistoryCanvas.getContext('2d');
+//         this.combinedCtx = this.combinedCanvas.getContext('2d');
+        
+//         // Add mouse event listeners for tooltips
+//         this.setupChartInteractions();
+//     }
+    
+//     setupChartInteractions() {
+//         const charts = [
+//             { canvas: this.tempHistoryCanvas, tooltip: 'tempTooltip', data: 'temperature' },
+//             { canvas: this.humidityHistoryCanvas, tooltip: 'humidityTooltip', data: 'humidity' },
+//             { canvas: this.windHistoryCanvas, tooltip: 'windTooltip', data: 'windSpeed' },
+//             { canvas: this.combinedCanvas, tooltip: 'combinedTooltip', data: 'combined' }
+//         ];
+        
+//         charts.forEach(chart => {
+//             chart.canvas.addEventListener('mousemove', (e) => {
+//                 this.handleChartHover(e, chart);
+//             });
+            
+//             chart.canvas.addEventListener('mouseleave', () => {
+//                 document.getElementById(chart.tooltip).classList.remove('visible');
+//             });
+//         });
+//     }
+    
+//     handleChartHover(event, chart) {
+//         const rect = chart.canvas.getBoundingClientRect();
+//         const x = event.clientX - rect.left;
+//         const y = event.clientY - rect.top;
+        
+//         const data = this.getFilteredHistoricalData();
+//         if (data.length === 0) return;
+        
+//         const padding = 60;
+//         const chartWidth = chart.canvas.width - padding * 2;
+//         const dataIndex = Math.round((x - padding) / chartWidth * (data.length - 1));
+        
+//         if (dataIndex >= 0 && dataIndex < data.length) {
+//             const tooltip = document.getElementById(chart.tooltip);
+//             const timestamp = data[dataIndex].timestamp;
+//             const timeStr = timestamp.toLocaleTimeString();
+            
+//             let content = `Time: ${timeStr}<br>`;
+            
+//             if (chart.data === 'temperature') {
+//                 const temp = data[dataIndex].temperature;
+//                 const displayTemp = this.temperatureUnit === 'fahrenheit' ? this.celsiusToFahrenheit(temp) : temp;
+//                 const unit = this.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+//                 content += `Temperature: ${displayTemp.toFixed(1)}${unit}`;
+//             } else if (chart.data === 'humidity') {
+//                 content += `Humidity: ${data[dataIndex].humidity.toFixed(1)}%`;
+//             } else if (chart.data === 'windSpeed') {
+//                 content += `Wind Speed: ${data[dataIndex].windSpeed.toFixed(1)} km/h`;
+//             } else if (chart.data === 'combined') {
+//                 const temp = data[dataIndex].temperature;
+//                 const displayTemp = this.temperatureUnit === 'fahrenheit' ? this.celsiusToFahrenheit(temp) : temp;
+//                 const unit = this.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+//                 content += `Temperature: ${displayTemp.toFixed(1)}${unit}<br>`;
+//                 content += `Humidity: ${data[dataIndex].humidity.toFixed(1)}%<br>`;
+//                 content += `Wind Speed: ${data[dataIndex].windSpeed.toFixed(1)} km/h`;
+//             }
+            
+//             tooltip.innerHTML = content;
+//             tooltip.style.left = `${event.clientX + 10}px`;
+//             tooltip.style.top = `${event.clientY - 10}px`;
+//             tooltip.classList.add('visible');
+//         }
+//     }
+    
+//     drawCharts() {
+//         this.drawLineChart(this.tempCtx, this.temperatureData, '#e74c3c', this.tempCanvas);
+//         this.drawLineChart(this.humidityCtx, this.humidityData, '#3498db', this.humidityCanvas);
+//         this.drawLineChart(this.windCtx, this.windSpeedData, '#2ecc71', this.windCanvas);
+//     }
+    
+//     drawHistoricalCharts() {
+//         const data = this.getFilteredHistoricalData();
+        
+//         this.drawHistoricalChart(this.tempHistoryCtx, data.map(d => d.temperature), '#e74c3c', this.tempHistoryCanvas, data);
+//         this.drawHistoricalChart(this.humidityHistoryCtx, data.map(d => d.humidity), '#3498db', this.humidityHistoryCanvas, data);
+//         this.drawHistoricalChart(this.windHistoryCtx, data.map(d => d.windSpeed), '#2ecc71', this.windHistoryCanvas, data);
+//         this.drawCombinedChart(data);
+//     }
+    
+//     getFilteredHistoricalData() {
+//         const now = new Date();
+//         let cutoffTime;
+        
+//         switch (this.timeRange) {
+//             case '1h':
+//                 cutoffTime = new Date(now.getTime() - 60 * 60 * 1000);
+//                 break;
+//             case '6h':
+//                 cutoffTime = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+//                 break;
+//             case '24h':
+//                 cutoffTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+//                 break;
+//             case '7d':
+//                 cutoffTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+//                 break;
+//             default:
+//                 cutoffTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+//         }
+        
+//         const filteredData = [];
+//         for (let i = 0; i < this.historicalData.timestamps.length; i++) {
+//             if (this.historicalData.timestamps[i] >= cutoffTime) {
+//                 filteredData.push({
+//                     timestamp: this.historicalData.timestamps[i],
+//                     temperature: this.historicalData.temperature[i],
+//                     humidity: this.historicalData.humidity[i],
+//                     windSpeed: this.historicalData.windSpeed[i],
+//                     windDirection: this.historicalData.windDirection[i]
+//                 });
+//             }
+//         }
+        
+//         return filteredData;
+//     }
+    
+//     drawHistoricalChart(ctx, data, color, canvas, fullData) {
+//         const width = canvas.width;
+//         const height = canvas.height;
+//         const padding = 60;
+        
+//         ctx.clearRect(0, 0, width, height);
+        
+//         if (data.length < 2) return;
+        
+//         const minValue = Math.min(...data);
+//         const maxValue = Math.max(...data);
+//         const range = maxValue - minValue || 1;
+        
+//         // Draw background
+//         ctx.fillStyle = '#fafbfc';
+//         ctx.fillRect(0, 0, width, height);
+        
+//         // Draw grid lines
+//         ctx.strokeStyle = '#e1e8ed';
+//         ctx.lineWidth = 1;
+        
+//         // Horizontal grid lines
+//         for (let i = 0; i <= 5; i++) {
+//             const y = (height - padding * 2) * (i / 5) + padding;
+//             ctx.beginPath();
+//             ctx.moveTo(padding, y);
+//             ctx.lineTo(width - padding, y);
+//             ctx.stroke();
+            
+//             // Y-axis labels
+//             const value = maxValue - (range * i / 5);
+//             ctx.fillStyle = '#7f8c8d';
+//             ctx.font = '11px Arial';
+//             ctx.textAlign = 'right';
+//             ctx.fillText(value.toFixed(1), padding - 10, y + 4);
+//         }
+        
+//         // Vertical grid lines and time labels
+//         const timeSteps = Math.min(6, data.length);
+//         for (let i = 0; i <= timeSteps; i++) {
+//             const x = (width - padding * 2) * (i / timeSteps) + padding;
+//             ctx.strokeStyle = '#e1e8ed';
+//             ctx.beginPath();
+//             ctx.moveTo(x, padding);
+//             ctx.lineTo(x, height - padding);
+//             ctx.stroke();
+            
+//             // Time labels
+//             if (fullData && fullData.length > 0) {
+//                 const dataIndex = Math.floor((data.length - 1) * i / timeSteps);
+//                 if (dataIndex < fullData.length) {
+//                     const timestamp = fullData[dataIndex].timestamp;
+//                     const timeStr = timestamp.toLocaleTimeString('en-US', { 
+//                         hour: '2-digit', 
+//                         minute: '2-digit' 
+//                     });
+//                     ctx.fillStyle = '#7f8c8d';
+//                     ctx.font = '10px Arial';
+//                     ctx.textAlign = 'center';
+//                     ctx.fillText(timeStr, x, height - padding + 15);
+//                 }
+//             }
+//         }
+        
+//         // Draw area under the curve
+//         ctx.fillStyle = color + '20';
+//         ctx.beginPath();
+//         ctx.moveTo(padding, height - padding);
+        
+//         data.forEach((value, index) => {
+//             const x = (width - padding * 2) * (index / (data.length - 1)) + padding;
+//             const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+//             ctx.lineTo(x, y);
+//         });
+        
+//         ctx.lineTo(width - padding, height - padding);
+//         ctx.closePath();
+//         ctx.fill();
+        
+//         // Draw data line
+//         ctx.strokeStyle = color;
+//         ctx.lineWidth = 2;
+//         ctx.beginPath();
+        
+//         data.forEach((value, index) => {
+//             const x = (width - padding * 2) * (index / (data.length - 1)) + padding;
+//             const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+            
+//             if (index === 0) {
+//                 ctx.moveTo(x, y);
+//             } else {
+//                 ctx.lineTo(x, y);
+//             }
+//         });
+        
+//         ctx.stroke();
+        
+//         // Draw points
+//         ctx.fillStyle = color;
+//         data.forEach((value, index) => {
+//             const x = (width - padding * 2) * (index / (data.length - 1)) + padding;
+//             const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+            
+//             ctx.beginPath();
+//             ctx.arc(x, y, 2, 0, Math.PI * 2);
+//             ctx.fill();
+//         });
+//     }
+    
+//     drawCombinedChart(data) {
+//         const ctx = this.combinedCtx;
+//         const canvas = this.combinedCanvas;
+//         const width = canvas.width;
+//         const height = canvas.height;
+//         const padding = 60;
+        
+//         ctx.clearRect(0, 0, width, height);
+        
+//         if (data.length < 2) return;
+        
+//         // Draw background
+//         ctx.fillStyle = '#fafbfc';
+//         ctx.fillRect(0, 0, width, height);
+        
+//         // Normalize data to 0-1 range for combined display
+//         const tempData = data.map(d => d.temperature);
+//         const humidityData = data.map(d => d.humidity);
+//         const windData = data.map(d => d.windSpeed);
+        
+//         const tempMin = Math.min(...tempData);
+//         const tempMax = Math.max(...tempData);
+//         const tempRange = tempMax - tempMin || 1;
+        
+//         const humidityMin = Math.min(...humidityData);
+//         const humidityMax = Math.max(...humidityData);
+//         const humidityRange = humidityMax - humidityMin || 1;
+        
+//         const windMin = Math.min(...windData);
+//         const windMax = Math.max(...windData);
+//         const windRange = windMax - windMin || 1;
+        
+//         // Draw grid
+//         ctx.strokeStyle = '#e1e8ed';
+//         ctx.lineWidth = 1;
+        
+//         for (let i = 0; i <= 5; i++) {
+//             const y = (height - padding * 2) * (i / 5) + padding;
+//             ctx.beginPath();
+//             ctx.moveTo(padding, y);
+//             ctx.lineTo(width - padding, y);
+//             ctx.stroke();
+//         }
+        
+//         // Draw time labels
+//         const timeSteps = Math.min(6, data.length);
+//         for (let i = 0; i <= timeSteps; i++) {
+//             const x = (width - padding * 2) * (i / timeSteps) + padding;
+//             const dataIndex = Math.floor((data.length - 1) * i / timeSteps);
+//             if (dataIndex < data.length) {
+//                 const timestamp = data[dataIndex].timestamp;
+//                 const timeStr = timestamp.toLocaleTimeString('en-US', { 
+//                     hour: '2-digit', 
+//                     minute: '2-digit' 
+//                 });
+//                 ctx.fillStyle = '#7f8c8d';
+//                 ctx.font = '10px Arial';
+//                 ctx.textAlign = 'center';
+//                 ctx.fillText(timeStr, x, height - padding + 15);
+//             }
+//         }
+        
+//         // Draw temperature line
+//         this.drawNormalizedLine(ctx, tempData, tempMin, tempRange, '#e74c3c', width, height, padding);
+        
+//         // Draw humidity line
+//         this.drawNormalizedLine(ctx, humidityData, humidityMin, humidityRange, '#3498db', width, height, padding);
+        
+//         // Draw wind speed line
+//         this.drawNormalizedLine(ctx, windData, windMin, windRange, '#2ecc71', width, height, padding);
+//     }
+    
+//     drawNormalizedLine(ctx, data, minValue, range, color, width, height, padding) {
+//         ctx.strokeStyle = color;
+//         ctx.lineWidth = 2;
+//         ctx.beginPath();
+        
+//         data.forEach((value, index) => {
+//             const x = (width - padding * 2) * (index / (data.length - 1)) + padding;
+//             const normalizedValue = (value - minValue) / range;
+//             const y = height - padding - normalizedValue * (height - padding * 2);
+            
+//             if (index === 0) {
+//                 ctx.moveTo(x, y);
+//             } else {
+//                 ctx.lineTo(x, y);
+//             }
+//         });
+        
+//         ctx.stroke();
+//     }
+    
+//     updateStatistics() {
+//         const data = this.getFilteredHistoricalData();
+        
+//         if (data.length === 0) return;
+        
+//         // Temperature statistics
+//         const temps = data.map(d => d.temperature);
+//         const tempMin = Math.min(...temps);
+//         const tempMax = Math.max(...temps);
+//         const tempAvg = temps.reduce((a, b) => a + b, 0) / temps.length;
+        
+//         const tempUnit = this.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+//         document.getElementById('tempMin').textContent = `${(this.temperatureUnit === 'fahrenheit' ? this.celsiusToFahrenheit(tempMin) : tempMin).toFixed(1)}${tempUnit}`;
+//         document.getElementById('tempMax').textContent = `${(this.temperatureUnit === 'fahrenheit' ? this.celsiusToFahrenheit(tempMax) : tempMax).toFixed(1)}${tempUnit}`;
+//         document.getElementById('tempAvg').textContent = `${(this.temperatureUnit === 'fahrenheit' ? this.celsiusToFahrenheit(tempAvg) : tempAvg).toFixed(1)}${tempUnit}`;
+        
+//         // Humidity statistics
+//         const humidities = data.map(d => d.humidity);
+//         const humidityMin = Math.min(...humidities);
+//         const humidityMax = Math.max(...humidities);
+//         const humidityAvg = humidities.reduce((a, b) => a + b, 0) / humidities.length;
+        
+//         document.getElementById('humidityMin').textContent = `${humidityMin.toFixed(1)}%`;
+//         document.getElementById('humidityMax').textContent = `${humidityMax.toFixed(1)}%`;
+//         document.getElementById('humidityAvg').textContent = `${humidityAvg.toFixed(1)}%`;
+        
+//         // Wind speed statistics
+//         const winds = data.map(d => d.windSpeed);
+//         const windMin = Math.min(...winds);
+//         const windMax = Math.max(...winds);
+//         const windAvg = winds.reduce((a, b) => a + b, 0) / winds.length;
+        
+//         document.getElementById('windMin').textContent = `${windMin.toFixed(1)} km/h`;
+//         document.getElementById('windMax').textContent = `${windMax.toFixed(1)} km/h`;
+//         document.getElementById('windAvg').textContent = `${windAvg.toFixed(1)} km/h`;
+//     }
+    
+//     drawLineChart(ctx, data, color, canvas) {
+//         const width = canvas.width;
+//         const height = canvas.height;
+//         const padding = 20;
+        
+//         ctx.clearRect(0, 0, width, height);
+        
+//         if (data.length < 2) return;
+        
+//         const minValue = Math.min(...data);
+//         const maxValue = Math.max(...data);
+//         const range = maxValue - minValue || 1;
+        
+//         // Draw grid lines
+//         ctx.strokeStyle = '#ecf0f1';
+//         ctx.lineWidth = 1;
+        
+//         for (let i = 1; i < 5; i++) {
+//             const y = (height - padding * 2) * (i / 4) + padding;
+//             ctx.beginPath();
+//             ctx.moveTo(padding, y);
+//             ctx.lineTo(width - padding, y);
+//             ctx.stroke();
+//         }
+        
+//         // Draw data line
+//         ctx.strokeStyle = color;
+//         ctx.lineWidth = 2;
+//         ctx.beginPath();
+        
+//         data.forEach((value, index) => {
+//             const x = (width - padding * 2) * (index / (data.length - 1)) + padding;
+//             const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+            
+//             if (index === 0) {
+//                 ctx.moveTo(x, y);
+//             } else {
+//                 ctx.lineTo(x, y);
+//             }
+//         });
+        
+//         ctx.stroke();
+        
+//         // Draw points
+//         ctx.fillStyle = color;
+//         data.forEach((value, index) => {
+//             const x = (width - padding * 2) * (index / (data.length - 1)) + padding;
+//             const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+            
+//             ctx.beginPath();
+//             ctx.arc(x, y, 3, 0, Math.PI * 2);
+//             ctx.fill();
+//         });
+        
+//         // Draw current value
+//         ctx.fillStyle = '#2c3e50';
+//         ctx.font = '12px Arial';
+//         ctx.textAlign = 'right';
+//         const currentValue = data[data.length - 1];
+//         ctx.fillText(currentValue.toFixed(1), width - padding - 5, padding - 5);
+//     }
+    
+//     updateAlerts() {
+//         const alertsContainer = document.getElementById('alertsContainer');
+//         const alerts = [];
+        
+//         // Temperature alerts
+//         if (this.currentTemp > 35) {
+//             alerts.push({ message: `High temperature alert: ${this.currentTemp}°C`, type: 'danger' });
+//         } else if (this.currentTemp < 0) {
+//             alerts.push({ message: `Freezing temperature alert: ${this.currentTemp}°C`, type: 'danger' });
+//         }
+        
+//         // Humidity alerts
+//         if (this.currentHumidity > 90) {
+//             alerts.push({ message: `Very high humidity: ${this.currentHumidity}%`, type: 'warning' });
+//         } else if (this.currentHumidity < 20) {
+//             alerts.push({ message: `Very low humidity: ${this.currentHumidity}%`, type: 'warning' });
+//         }
+        
+//         // Wind alerts
+//         if (this.currentWindSpeed > 35) {
+//             alerts.push({ message: `Gale force winds: ${this.currentWindSpeed} km/h`, type: 'danger' });
+//         }
+        
+//         if (alerts.length === 0) {
+//             alertsContainer.innerHTML = '<div class="no-alerts">No active alerts</div>';
+//         } else {
+//             alertsContainer.innerHTML = alerts.map(alert => 
+//                 `<div class="alert ${alert.type}">${alert.message}</div>`
+//             ).join('');
+//         }
+//     }
+    
+//     updateLastUpdated() {
+//         const now = new Date();
+//         const timeString = now.toLocaleTimeString('en-US', { 
+//             hour12: false,
+//             hour: '2-digit',
+//             minute: '2-digit',
+//             second: '2-digit'
+//         });
+//         document.getElementById('lastUpdated').textContent = timeString;
+//     }
+    
+//     startAutoRefresh() {
+//         if (this.autoRefresh && !this.intervalId) {
+//             this.intervalId = setInterval(() => {
+//                 this.updateData();
+//             }, this.refreshInterval);
+//         }
+//     }
+    
+//     stopAutoRefresh() {
+//         if (this.intervalId) {
+//             clearInterval(this.intervalId);
+//             this.intervalId = null;
+//         }
+//     }
+// }
+
+// // Global functions for button controls
+// function toggleTemperatureUnit() {
+//     monitor.temperatureUnit = monitor.temperatureUnit === 'celsius' ? 'fahrenheit' : 'celsius';
+//     monitor.updateDisplay();
+//     monitor.updateStatistics();
+//     monitor.drawHistoricalCharts();
+// }
+
+// function toggleAutoRefresh() {
+//     const btn = event.target;
+//     monitor.autoRefresh = !monitor.autoRefresh;
+    
+//     if (monitor.autoRefresh) {
+//         monitor.startAutoRefresh();
+//         btn.classList.add('active');
+//         btn.textContent = 'Auto Refresh ON';
+//     } else {
+//         monitor.stopAutoRefresh();
+//         btn.classList.remove('active');
+//         btn.textContent = 'Auto Refresh OFF';
+//     }
+// }
+
+// function updateTimeRange() {
+//     const select = document.getElementById('timeRange');
+//     monitor.timeRange = select.value;
+//     monitor.drawHistoricalCharts();
+//     monitor.updateStatistics();
+// }
+
+// function exportData() {
+//     const data = monitor.getFilteredHistoricalData();
+//     const csvContent = "data:text/csv;charset=utf-8," 
+//         + "Timestamp,Temperature(°C),Humidity(%),Wind Speed(km/h),Wind Direction(°)\n"
+//         + data.map(row => 
+//             `${row.timestamp.toISOString()},${row.temperature},${row.humidity},${row.windSpeed},${row.windDirection}`
+//         ).join("\n");
+    
+//     const encodedUri = encodeURI(csvContent);
+//     const link = document.createElement("a");
+//     link.setAttribute("href", encodedUri);
+//     link.setAttribute("download", `weather_data_${new Date().toISOString().split('T')[0]}.csv`);
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+// }
+
+// // Initialize the weather monitor when the page loads
+// let monitor;
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     monitor = new WeatherMonitor();
+// }); 
+
+
+// function updateDateTime() {
+//     const now = new Date();
+//     const options = { 
+//         weekday: 'short', 
+//         year: 'numeric', 
+//         month: 'short', 
+//         day: 'numeric', 
+//         hour: '2-digit', 
+//         minute: '2-digit', 
+//         second: '2-digit' 
+//     };
+//     document.getElementById('currentTime').textContent = now.toLocaleString('en-US', options);
+// }
+
+// updateDateTime();
+// setInterval(updateDateTime, 1000);

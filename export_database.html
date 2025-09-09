@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Export Weather Data</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('https://images.unsplash.com/photo-1526312426976-f4d754fa9bd6?auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-position: center;
+      margin: 0;
+      padding: 0;
+
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    h2, h3 {
+      color: #333;
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type="date"] {
+      padding: 6px;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 10px 10px 10px 0;
+      border: none;
+      background-color: #2563eb;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #4f46e5;
+      color: white;
+    }
+    label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 8px;
+    }
+    /* Responsive adjustments */
+@media (max-width: 768px) {
+    body{
+        font-size: 2rem;
+    }
+  .container {
+    margin: 15px;
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 2.8rem;
+    text-align: center;
+  }
+
+  label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 1.1rem;
+  }
+
+  input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 2rem;
+  }
+
+  button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 14px;
+    font-size: 2.1rem;
+  }
+
+  table {
+    font-size: 2rem;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  label {
+    font-size: 1rem;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Export Weather Data from Supabase</h2>
+
+    <label>Start Date: <input type="date" id="startDate" /></label>
+    <label>End Date: <input type="date" id="endDate" /></label>
+
+    <label>
+    <input type="checkbox" id="exportTemp" checked />
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#ef4444" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;">
+        <path d="M13 14.06V5a1 1 0 1 0-2 0v9.06A5 5 0 1 0 13 14.06ZM12 22a3 3 0 0 1-1-5.83V14h2v2.17A3 3 0 0 1 12 22Z"/>
+    </svg>
+    Temperature
+    </label>
+
+    <label>
+    <input type="checkbox" id="exportHumidity" checked />
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#3b82f6" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;">
+        <path d="M12 3C12 3 4 11 4 16.5S7.5 22 12 22s8-2.5 8-5.5S12 3 12 3zm0 17c-2.25 0-5-1.33-5-3.5S12 5.92 12 5.92 17 12.33 17 16.5 14.25 20 12 20z"/>
+    </svg>
+    Humidity
+    </label>
+
+    <label>
+    <input type="checkbox" id="exportWind" checked />
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#22c55e" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;">
+        <path d="M4 12h13a3 3 0 1 0-3-3h2a1 1 0 1 1 1 1H4a1 1 0 0 1 0-2h11a5 5 0 1 1 5 5H4a1 1 0 1 1 0-2Zm0 6h9a2 2 0 1 0 0-4H4a1 1 0 1 0 0 2h9a.5.5 0 1 1 0 1H4a1 1 0 0 0 0 2Zm0 4h5a2 2 0 0 0 0-4H4a1 1 0 1 0 0 2h5a.5.5 0 1 1 0 1H4a1 1 0 0 0 0 2Z"/>
+    </svg>
+    Wind Speed
+    </label>
+
+
+    <br />
+    <button id="fetchData">Fetch Data</button>
+    <button id="downloadExcel" style="display:none;">Download Excel</button>
+    <button id="downloadPDF" style="display:none;">Download PDF</button>
+    <button id="returnDashboard">Return to Dashboard</button>  <!-- New button -->
+
+    <div id="tableSection" style="display:none;">
+      <h3>Exported Data</h3>
+      <table id="dataTable">
+        <thead><tr id="tableHead"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</body>
+<script type="module" src="script.js"></script>
+</html>

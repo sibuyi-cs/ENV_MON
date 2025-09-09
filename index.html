@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Monitoring Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="background.css">
+    
+</head>
+<body>  
+
+    <div class="wrapper">
+        <div class="welcome-container">
+            <h1>Welcome to Weather Monitoring System</h1>
+            <p>
+                This system provides real-time environmental monitoring, including temperature,
+                humidity, wind speed, and historical weather trends. Designed for researchers,
+                analysts, and organizations to monitor climate data effectively.
+            </p>
+
+            <div class="auth-buttons">
+                <button class="login-btn" id="loginBtn">Login</button>
+                <button class="register-btn" id="registerBtn">Register</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Register event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+
+            loginBtn.addEventListener('click', () => {
+            window.location.href = "login.html"; // or open login modal
+            });
+
+            registerBtn.addEventListener('click', () => {
+            window.location.href = "register.html"; // or open register modal
+            });
+        });
+    </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
